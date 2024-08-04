@@ -130,7 +130,7 @@ try:
     '''
 
     chisel_client = f'''\
-    sh  -c '[ ! -x chisel ] && curl -L github.com/VHSgunzo/chisel/releases/download/v1.9.2/chisel-linux_amd64 -o "{self_dir}/chisel" && \
+    sh  -c '[ ! -x "{self_dir}/chisel" ] && curl -L github.com/VHSgunzo/chisel/releases/download/v1.9.2/chisel-linux_amd64 -o "{self_dir}/chisel" && \
     chmod +x "{self_dir}/chisel" ; \
     "{self_dir}/chisel" client {chisel_addr} socks'
     '''
