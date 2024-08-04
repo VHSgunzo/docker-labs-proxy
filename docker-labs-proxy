@@ -141,8 +141,6 @@ try:
 
     print(ssh)
     shell_exec(f'{ssh} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {chisel_server}')
-    print(chisel_client)
-    shell_exec(f'{chisel_client}')
 
     # terminal_id = page_element(By.XPATH, "//*[@id='popupContainer']/md-content/md-card[1]/md-card-title/md-card-title-text/span")
     # page_element(By.XPATH, f"//*[@id='terminal-{terminal_id}']/div/div[1]/div[1]/div[10]", 'send_keys', "$ls -la\n")
