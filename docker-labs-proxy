@@ -2,8 +2,8 @@
 
 from time import sleep
 from shlex import split
-from os.path import dirname
 from subprocess import Popen
+from os.path import dirname, realpath
 
 from configparser import ConfigParser
 from selenium.webdriver.common.by import By
@@ -48,7 +48,7 @@ def shell_exec(cmd, wait=True):
     if wait:
         process.wait()
 
-self_dir = dirname(__file__)
+self_dir = dirname(realpath(__file__))
 env_file = self_dir + '/.env'
 config = ConfigParser()
 config.read(env_file)
