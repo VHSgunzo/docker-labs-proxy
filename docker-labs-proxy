@@ -4,7 +4,6 @@ from time import sleep
 from shlex import split
 from os.path import dirname
 from subprocess import Popen
-from threading import Thread
 
 from configparser import ConfigParser
 from selenium.webdriver.common.by import By
@@ -43,10 +42,11 @@ def page_element(find_by, element, action='', action_args='', timeout=30):
         print([find_by, element])
         return False
 
-def shell_exec(cmd):
+def shell_exec(cmd, wait=True):
     command = split(cmd)
     process = Popen(command)
-    process.wait()
+    if wait:
+        process.wait()
 
 self_dir = dirname(__file__)
 env_file = self_dir + '/.env'
@@ -137,7 +137,7 @@ try:
 
     print('Start proxy: socks5://127.0.0.1:1080')
     print(chisel_client)
-    Thread(target=shell_exec, args=(chisel_client,)).start()
+    shell_exec(chisel_client, False)
 
     print(ssh)
     shell_exec(f'{ssh} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {chisel_server}')
