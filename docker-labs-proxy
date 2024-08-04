@@ -1,0 +1,142 @@
+#!/bin/python
+
+from time import sleep
+from shlex import split
+from os.path import dirname
+from subprocess import Popen
+from threading import Thread
+
+from configparser import ConfigParser
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.alert import Alert
+from undetected_chromedriver import Chrome as Browser
+
+
+def page_element(find_by, element, action='', action_args='', timeout=30):
+    page_element = ''
+    while not page_element and timeout != 0:
+        try:
+            page_element = browser.find_element(find_by, element)
+            if action:
+                try:
+                    if action_args:
+                        ret = getattr(page_element, action)(action_args)
+                    else:
+                        ret = getattr(page_element, action)()
+                        if action == 'click':
+                            ret = True
+                    return ret
+                except Exception as error:
+                    if 'Element is not clickable' in str(error):
+                        browser.execute_script('window.scrollTo(0, 1350)')
+                        page_element = ''
+                    else:
+                        print(str(error))
+            else:
+                return page_element.text
+        except Exception:
+            sleep(1)
+            timeout -= 1
+    if timeout == 0:
+        print('The waiting time for the element has expired:')
+        print([find_by, element])
+        return False
+
+def shell_exec(cmd):
+    command = split(cmd)
+    process = Popen(command)
+    process.wait()
+
+
+env_file = dirname(__file__) + '/.env'
+config = ConfigParser()
+config.read(env_file)
+
+uri_docker = 'https://www.docker.com'
+uri_labs = 'https://labs.play-with-docker.com'
+
+username = config['DEFAULT']['USERNAME']
+password = config['DEFAULT']['PASSWORD']
+
+print('Open browser', end=' ')
+browser = Browser(headless=True)
+print('[\u2713]')
+
+try:
+    print(f"Open: '{uri_docker}'", end=' ')
+    browser.get(uri_docker)
+    print('[\u2713]')
+
+    print('Login...')
+    page_element(By.XPATH, "//*[@id='et-boc']/header/nav/ul[1]/li[12]/a[1]", 'click')
+
+    if not username:
+        while not (username := input('Enter the user name: ')):
+            pass
+    print('Send username', end=' ')
+    page_element(By.XPATH, "//*[@id='username']", 'send_keys', username)
+    page_element(By.XPATH, "/html/body/div/main/section/div[1]/div/div/div[1]/div/form/div[2]/button", 'click')
+    print('[\u2713]')
+
+    if not password:
+        while not (password := input('Enter the password: ')):
+            pass
+    print('Send password', end=' ')
+    page_element(By.XPATH, "//*[@id='password']", 'send_keys', password)
+    page_element(By.XPATH, "/html/body/div/main/section/div[1]/div/div/form/div[2]/button", 'click')
+    print('[\u2713]')
+
+    print(f"Open: '{uri_labs}'", end=' ')
+    browser.get(uri_labs)
+    print('[\u2713]')
+
+    print('Create new instance', end=' ')
+    page_element(By.XPATH, "//*[@id='btnGroupDrop1']", 'click')
+    page_element(By.XPATH, "/html/body/div/div[2]/div/div/a", 'click')
+    sleep(3)
+    page_element(By.XPATH, "//*[@id='landingForm']/p/a", 'click')
+    sleep(1)
+    page_element(By.XPATH, '//*[@id="popupContainer"]/md-sidenav/md-content/button/span', 'click')
+    sleep(1)
+    ssh = page_element(By.XPATH, '//*[@id="input_3"]', "get_property", "value")
+    print('[\u2713]')
+
+    print('Open port 2871', end=' ')
+    page_element(By.XPATH, '//*[@id="popupContainer"]/md-content/md-card[1]/md-card-content/div[1]/button/span', 'click')
+    sleep(1)
+    alert = Alert(browser)
+    alert.send_keys("2871")
+    alert.accept()
+    print('[\u2713]')
+
+    chisel_addr = ssh.replace('ssh ', 'http://').replace('@', '-2871.')
+
+    chisel_server = '''\
+    curl -L github.com/VHSgunzo/chisel/releases/download/v1.9.2/chisel-linux_amd64 -o /usr/bin/chisel && \
+    chmod +x /usr/bin/chisel && \
+    chisel server --socks5
+    '''
+
+    chisel_client = f'''\
+    sh  -c '[ ! -x chisel ] && curl -L github.com/VHSgunzo/chisel/releases/download/v1.9.2/chisel-linux_amd64 -o chisel && \
+    chmod +x chisel; \
+    ./chisel client {chisel_addr} socks'
+    '''
+
+    print('Start proxy: socks5://127.0.0.1:1080')
+    print(chisel_client)
+    Thread(target=shell_exec, args=(chisel_client,)).start()
+
+    print(ssh)
+    shell_exec(f'{ssh} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {chisel_server}')
+    print(chisel_client)
+    shell_exec(f'{chisel_client}')
+
+    # terminal_id = page_element(By.XPATH, "//*[@id='popupContainer']/md-content/md-card[1]/md-card-title/md-card-title-text/span")
+    # page_element(By.XPATH, f"//*[@id='terminal-{terminal_id}']/div/div[1]/div[1]/div[10]", 'send_keys', "$ls -la\n")
+except (KeyboardInterrupt, EOFError):
+    browser.quit()
+    quit()
+finally:
+    browser.quit()
+    quit()
