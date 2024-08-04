@@ -48,8 +48,8 @@ def shell_exec(cmd):
     process = Popen(command)
     process.wait()
 
-
-env_file = dirname(__file__) + '/.env'
+self_dir = dirname(__file__)
+env_file = self_dir + '/.env'
 config = ConfigParser()
 config.read(env_file)
 
@@ -130,9 +130,9 @@ try:
     '''
 
     chisel_client = f'''\
-    sh  -c '[ ! -x chisel ] && curl -L github.com/VHSgunzo/chisel/releases/download/v1.9.2/chisel-linux_amd64 -o chisel && \
-    chmod +x chisel ; \
-    ./chisel client {chisel_addr} socks'
+    sh  -c '[ ! -x chisel ] && curl -L github.com/VHSgunzo/chisel/releases/download/v1.9.2/chisel-linux_amd64 -o "{self_dir}/chisel" && \
+    chmod +x "{self_dir}/chisel" ; \
+    "{self_dir}/chisel" client {chisel_addr} socks'
     '''
 
     print('Start proxy: socks5://127.0.0.1:1080')
