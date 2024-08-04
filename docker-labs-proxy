@@ -92,6 +92,7 @@ try:
     page_element(By.XPATH, "//*[@id='password']", 'send_keys', password)
     page_element(By.XPATH, "/html/body/div/main/section/div[1]/div/div/form/div[2]/button", 'click')
     print('[\u2713]')
+    sleep(2)
 
     print(f"Open: '{uri_labs}'", end=' ')
     browser.get(uri_labs)
