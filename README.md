@@ -4,11 +4,9 @@
 ```
 Chrome or Chromium
 ssh
-chisel
 curl
 python3
 selenium
-undetected_chromedriver
 configparser
 ```
 ## To get started:
